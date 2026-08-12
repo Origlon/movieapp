@@ -156,3 +156,30 @@ export const topRatedMovies = [
     rating: 8.5,
   },
 ];
+export const MoreLikethis = [
+  {
+    image: "/pictures/image9.png",
+    rating: 6.9,
+    title: "Gladiator",
+  },
+  {
+    image: "/pictures/image10.jpg",
+    rating: 6.9,
+    title: "Deadpool & Wolverine",
+  },
+    {
+    image: "/pictures/image11.png",
+    rating: 6.9,
+    title: "A Real Pain",
+  },
+    {
+    image: "/pictures/image12.png",
+    rating: 6.9,
+    title: "Red One",
+  },
+    {
+    image: "/pictures/image13.png",
+    rating: 6.9,
+    title: "Goldilocks and the Three Bears:Death and Porrigde ",
+  },
+]

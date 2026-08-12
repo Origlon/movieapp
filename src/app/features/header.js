@@ -34,6 +34,7 @@ const genres = [
   "Thriller",
   "War",
   "Western",
+  
 ];
 
 export const Header = () => {
