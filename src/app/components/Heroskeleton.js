@@ -1,11 +1,11 @@
 export const HeroSkeleton = () => {
   return (
-    <div className="relative aspect-[1440/600] w-full overflow-hidden bg-gray-200 animate-pulse">
+    <div className="relative aspect-1440/600 w-full overflow-hidden bg-gray-200 animate-pulse">
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/10" />
 
       {/* Content skeleton */}
-      <div className="absolute left-[8%] top-1/2 w-[80%] max-w-[400px] -translate-y-1/2">
+      <div className="absolute left-[8%] top-1/2 w-[80%] max-w-100 -translate-y-1/2">
         {/* Now Playing */}
         <div className="h-4 w-24 rounded bg-gray-300" />
 

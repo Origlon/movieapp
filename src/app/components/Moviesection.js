@@ -14,6 +14,9 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
       router.push(path);
     }
   };
+  const handleMovieClick = (movie) => {
+router.push(`/detail/${movie.id}`)
+  }
 
   return (
     <section className="mb-16">
@@ -40,20 +43,25 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
 
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {movies.map((movie) => (
-          <MovieCard
+          <div
             key={movie.id || movie.title}
-            image={
-              movie.poster_path
-                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                : movie.image
-            }
-            title={movie.title}
-            rating={
-              movie.vote_average !== undefined
-                ? movie.vote_average.toFixed(1)
-                : movie.rating
-            }
-          />
+            onClick={() => handleMovieClick(movie)}
+            className="cursor-pointer transition-transform duration-200 hover:scale-105"
+          >
+            <MovieCard
+              image={
+                movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                  : movie.image
+              }
+              title={movie.title}
+              rating={
+                movie.vote_average !== undefined
+                  ? movie.vote_average.toFixed(1)
+                  : movie.rating
+              }
+            />
+          </div>
         ))}
       </div>
     </section>
