@@ -2,7 +2,7 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Play } from "lucide-react";
-import { Header } from "@/app/features/header";
+import { Header } from "@/app/features/Header";
 import { Footer } from "@/app/features/Footer";
 import { MovieSection } from "@/app/components/Moviesection";
 

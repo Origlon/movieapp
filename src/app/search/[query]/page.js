@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
-import { Header } from "@/app/features/header";
+import { Header } from "@/app/features/Header";
 import { Footer } from "@/app/features/Footer";
 
 const genres = [

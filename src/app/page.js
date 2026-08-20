@@ -1,5 +1,5 @@
 "use client";
-import { Header } from "./features/header";
+import { Header } from "./features/Header";
 import { Hero } from "./features/Hero";
 import { Footer } from "./features/Footer";
 import { MovieSection } from "./components/Moviesection";

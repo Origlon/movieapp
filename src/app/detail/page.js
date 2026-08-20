@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Play } from "lucide-react";
 
-import { Header } from "../features/header";
+import { Header } from "../features/Header";
 import { Footer } from "../features/Footer";
 import { MovieSection } from "../components/Moviesection";
 import { MoreLikethis,  } from "../data/movies";
