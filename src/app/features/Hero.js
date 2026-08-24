@@ -12,7 +12,7 @@ export const Hero = () => {
 
   const [trailer, setTrailer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [wheelLocked, setWheelLocked] = useState(false);
+ 
 
   const handleWheel = (e) => {
     if (nowPlayingData.length === 0) return;

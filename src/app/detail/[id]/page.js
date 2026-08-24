@@ -1,22 +1,33 @@
 "use client";
+
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Play } from "lucide-react";
+
 import { Header } from "@/app/features/Header";
 import { Footer } from "@/app/features/Footer";
 import { MovieSection } from "@/app/components/Moviesection";
 
 export default function Detail() {
   const { id } = useParams();
+
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
+
   const [credits, setCredits] = useState(null);
   const [similarMovies, setSimilarMovies] = useState([]);
+
   const [trailer, setTrailer] = useState(null);
+
+  // Trailer болон Movie-г тусдаа нээнэ
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+  const [isMovieOpen, setIsMovieOpen] = useState(false);
+
   const api_token =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
+
+  // Movie detail
   const getData = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}?language=en-US`,
@@ -27,10 +38,14 @@ export default function Detail() {
       },
     );
 
-    const jsonData = await response.json();
+    if (!response.ok) {
+      throw new Error("Movie API Error");
+    }
 
-    return jsonData;
+    return response.json();
   };
+
+  // Credits
   const getCredits = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/credits?language=en-US`,
@@ -41,10 +56,14 @@ export default function Detail() {
       },
     );
 
-    const jsonData = await response.json();
+    if (!response.ok) {
+      throw new Error("Credits API Error");
+    }
 
-    return jsonData;
+    return response.json();
   };
+
+  // Similar movies
   const getSimilarMovies = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/similar?language=en-US&page=1`,
@@ -55,10 +74,16 @@ export default function Detail() {
       },
     );
 
-    const jsonData = await response.json();
+    if (!response.ok) {
+      throw new Error("Similar Movies API Error");
+    }
 
-    return jsonData.results;
+    const data = await response.json();
+
+    return data.results || [];
   };
+
+  // Videos / Trailer
   const getVideos = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`,
@@ -69,38 +94,22 @@ export default function Detail() {
       },
     );
 
-    const jsonData = await response.json();
+    if (!response.ok) {
+      throw new Error("Videos API Error");
+    }
 
-    return jsonData.results;
+    const data = await response.json();
+
+    return data.results || [];
   };
+
+  // Get movie + credits + similar movies
   useEffect(() => {
-    getData(id)
-      .then((data) => {
-        setMovie(data);
-      })
-      .catch((error) => {
-        console.error(error);
-        setErrorMessage("MOVIE API ERROR");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [id]);
-  useEffect(() => {
-    Promise.all([getData(id), getCredits(id)])
-      .then(([movieData, creditsData]) => {
-        setMovie(movieData);
-        setCredits(creditsData);
-      })
-      .catch((error) => {
-        console.error(error);
-        setErrorMessage("MOVIE API ERROR");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [id]);
-  useEffect(() => {
+    if (!id) return;
+
+  
+
+
     Promise.all([getData(id), getCredits(id), getSimilarMovies(id)])
       .then(([movieData, creditsData, similarData]) => {
         setMovie(movieData);
@@ -115,24 +124,40 @@ export default function Detail() {
         setLoading(false);
       });
   }, [id]);
+
+  // Get trailer
   useEffect(() => {
+    if (!id) return;
+
     getVideos(id)
       .then((videos) => {
-        const officialTrailer = videos.find(
+        // Эхлээд official trailer хайна
+        let officialTrailer = videos.find(
           (video) =>
             video.site === "YouTube" &&
             video.type === "Trailer" &&
             video.official === true,
         );
 
+        // Official байхгүй бол дурын YouTube Trailer
+        if (!officialTrailer) {
+          officialTrailer = videos.find(
+            (video) => video.site === "YouTube" && video.type === "Trailer",
+          );
+        }
+
         setTrailer(officialTrailer || null);
       })
       .catch((error) => {
         console.error(error);
+        setTrailer(null);
       });
   }, [id]);
+
+  // Director
   const director = credits?.crew?.find((person) => person.job === "Director");
 
+  // Writers
   const writers = credits?.crew?.filter(
     (person) =>
       person.department === "Writing" ||
@@ -140,9 +165,13 @@ export default function Detail() {
       person.job === "Screenplay",
   );
 
+  // Stars
   const stars = credits?.cast?.slice(0, 3);
+
   return (
     <div>
+      {/* ================= LOADING ================= */}
+
       {loading && (
         <div className="relative flex min-h-screen flex-col items-center">
           <Header />
@@ -175,15 +204,21 @@ export default function Detail() {
         </div>
       )}
 
+      {/* ================= ERROR ================= */}
+
       {!loading && errorMessage && (
         <div className="flex min-h-screen items-center justify-center">
           <p className="text-red-500">{errorMessage}</p>
         </div>
       )}
 
+      {/* ================= CONTENT ================= */}
+
       {!loading && !errorMessage && movie && (
         <div className="relative flex min-h-screen flex-col items-center">
           <Header />
+
+          {/* ================= MOVIE HEADER ================= */}
 
           <div className="mt-12 mb-8 w-full max-w-6xl px-4">
             <div className="mb-6 flex items-start justify-between">
@@ -196,6 +231,8 @@ export default function Detail() {
                   {movie.release_date} · {movie.runtime}m
                 </p>
               </div>
+
+              {/* Rating */}
 
               <div>
                 <p className="text-xs text-[#09090B]">Rating</p>
@@ -222,7 +259,11 @@ export default function Detail() {
               </div>
             </div>
 
+            {/* ================= POSTER + BACKDROP ================= */}
+
             <div className="flex flex-col justify-between gap-8 md:flex-row">
+              {/* Poster */}
+
               <div className="relative h-107.5 w-full shrink-0 overflow-hidden rounded-xl md:w-72">
                 <img
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -231,6 +272,8 @@ export default function Detail() {
                 />
               </div>
 
+              {/* Backdrop */}
+
               <div className="relative flex h-107.5 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
                 <img
                   src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
@@ -238,9 +281,11 @@ export default function Detail() {
                   className="h-full w-full object-cover"
                 />
 
+             
+
                 <div className="absolute bottom-6 left-6 z-10 flex items-center gap-3 text-white">
                   <button
-                    onClick={() => setIsPlaying(true)}
+                    onClick={() => setIsTrailerOpen(true)}
                     className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-105 hover:bg-gray-200"
                   >
                     <Play size={20} fill="currentColor" />
@@ -248,32 +293,47 @@ export default function Detail() {
 
                   <span
                     className="cursor-pointer select-none text-lg font-semibold"
-                    onClick={() => setIsPlaying(true)}
+                    onClick={() => setIsTrailerOpen(true)}
                   >
                     Play trailer
                   </span>
                 </div>
+
+       
+
+                <button
+                  onClick={() => setIsMovieOpen(true)}
+                  className="absolute bottom-6 right-6 z-10 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-lg transition hover:scale-105 hover:bg-gray-100"
+                >
+                  Watch now
+                </button>
               </div>
             </div>
           </div>
 
-          {isPlaying && (
+      
+
+          {isTrailerOpen && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md sm:p-8"
-              onClick={() => setIsPlaying(false)}
+              onClick={() => setIsTrailerOpen(false)}
             >
               <div
                 className="relative aspect-video w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
+             
+
                 <button
-                  onClick={() => setIsPlaying(false)}
+                  onClick={() => setIsTrailerOpen(false)}
                   className="absolute right-4 top-4 z-50 flex cursor-pointer items-center gap-1 rounded-full border border-white/20 bg-black/70 px-3 py-1.5 text-xs text-white transition-all hover:bg-black"
                 >
                   ✕ Close
                 </button>
 
-                {trailer && (
+          
+
+                {trailer ? (
                   <iframe
                     className="h-full w-full"
                     src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`}
@@ -281,12 +341,53 @@ export default function Detail() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-white">
+                    <p>Trailer not available.</p>
+                  </div>
                 )}
               </div>
             </div>
           )}
 
+      
+
+          {isMovieOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md sm:p-8"
+              onClick={() => setIsMovieOpen(false)}
+            >
+              <div
+                className="relative aspect-video w-full max-w-6xl overflow-hidden rounded-2xl bg-black shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+
+
+                <button
+                  onClick={() => setIsMovieOpen(false)}
+                  className="absolute right-4 top-4 z-50 flex cursor-pointer items-center gap-1 rounded-full border border-white/20 bg-black/70 px-3 py-1.5 text-xs text-white transition-all hover:bg-black"
+                >
+                  ✕ Close
+                </button>
+
+                
+
+                <iframe
+                  className="h-full w-full"
+                  src={`https://www.vidking.net/embed/movie/${id}`}
+                  title={movie.title}
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
+
+          
+
           <div className="mb-8 flex w-full max-w-6xl flex-col gap-5 px-4">
+          
+
             <div className="flex flex-wrap gap-2">
               {movie.genres?.map((genre) => (
                 <span
@@ -298,13 +399,19 @@ export default function Detail() {
               ))}
             </div>
 
+       
+
             <div>
               <p className="text-base leading-relaxed text-gray-800">
                 {movie.overview}
               </p>
             </div>
 
+    
+
             <div className="flex flex-col gap-4">
+           
+
               <div className="flex gap-12 border-b border-[#E4E4E7] pb-3">
                 <p className="w-20 shrink-0 text-base font-bold">Director</p>
 
@@ -312,6 +419,7 @@ export default function Detail() {
                   {director?.name || "Unknown"}
                 </p>
               </div>
+
 
               <div className="flex gap-12 border-b border-[#E4E4E7] pb-3">
                 <p className="w-20 shrink-0 text-base font-bold">Writers</p>
@@ -321,6 +429,7 @@ export default function Detail() {
                     "Unknown"}
                 </p>
               </div>
+
 
               <div className="flex gap-12 border-b border-[#E4E4E7] pb-3">
                 <p className="w-20 shrink-0 text-base font-bold">Stars</p>
@@ -332,12 +441,16 @@ export default function Detail() {
             </div>
           </div>
 
+
           <div className="mb-16 w-full max-w-6xl px-4">
             <MovieSection
               title="More Like This"
               movies={similarMovies.slice(0, 5)}
+              path={`/similiar/${id}`}
             />
           </div>
+
+         
 
           <Footer />
         </div>

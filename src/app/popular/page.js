@@ -5,6 +5,7 @@ import { MovieSection } from "../components/Moviesection";
 import { useEffect, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { MovieSectionSkeleton } from "../components/Moviesectionskeleton";
+import { MovieSkeletonGrid } from "../components/MovieSkeletonGrid";
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
@@ -74,103 +75,84 @@ export default function PopularPage() {
     return pages;
   };
   return (
-    <div>
-      {loading && (
-        <div>
-          <Header />
+    <div className="flex min-h-screen flex-col">
+      <Header />
 
-          <section className="w-full px-20 py-10">
-            <div className="mx-auto max-w-7xl">
-              <MovieSectionSkeleton />
+      <main className="flex-1">
+        <section className="w-full px-20 py-10">
+          <div className="mx-auto max-w-7xl">
+            {loading ? (
+              <>
+                <div className="mb-6 h-8 w-32 animate-pulse rounded bg-gray-200" />
 
-              <div className="mt-8 flex items-center justify-end gap-2">
-                <div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
-
-                <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
-                <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
-                <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
-                <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
-                <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
-
-                <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
-
-                <div className="h-10 w-20 animate-pulse rounded-md bg-gray-200" />
+                <MovieSkeletonGrid />
+              </>
+            ) : errorMessage ? (
+              <div className="py-10 text-center text-red-500">
+                {errorMessage}
               </div>
-            </div>
-          </section>
+            ) : (
+              <>
+                <MovieSection
+                  title="POPULAR"
+                  movies={popularData.slice(0, 10)}
+                  path="/popular"
+                  isDetailPage={true}
+                />
 
-          <Footer />
-        </div>
-      )}
-      {!loading && errorMessage && <div>{errorMessage}</div>}
-      {!loading && !errorMessage && (
-        <div>
-          <Header />
-          <section className="w-full px-20 py-10">
-            <div className="mx-auto max-w-7xl">
-              <MovieSection
-                title="POPULAR"
-                movies={popularData.slice(0, 10)}
-                path="/popular"
-                isDetailPage={true}
-              />
+                <div className="mt-8 flex items-center justify-end gap-2">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 rounded-md border px-3 py-2 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft />
+                    Previous
+                  </button>
 
-              <div className="flex justify-end items-center gap-2 mt-8">
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border
-                   disabled:opacity-40 disabled:cursor-not-allowed
-                   hover:bg-gray-100 transition"
-                >
-                  <ChevronLeft />
-                  Previous
-                </button>
+                  {getPageNumbers().map((page, index) => {
+                    if (page === "...") {
+                      return (
+                        <span
+                          key={`dots-${index}`}
+                          className="px-2 py-2 text-gray-500"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
 
-                {getPageNumbers().map((page, index) => {
-                  if (page === "...") {
                     return (
-                      <span
-                        key={`dots-${index}`}
-                        className="px-2 py-2 text-gray-500"
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`min-w-10 rounded-md border px-3 py-2 transition ${
+                          currentPage === page
+                            ? "border-black bg-black text-white"
+                            : "bg-white text-black hover:bg-gray-100"
+                        }`}
                       >
-                        ...
-                      </span>
+                        {page}
+                      </button>
                     );
-                  }
+                  })}
 
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`min-w-10 px-3 py-2 rounded-md border transition ${
-                        currentPage === page
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-black hover:bg-gray-100"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
+                  <button
+                    onClick={handleNext}
+                    disabled={currentPage === 57}
+                    className="flex items-center gap-1 rounded-md border px-3 py-2 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                    <ChevronRight />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      </main>
 
-                <button
-                  onClick={handleNext}
-                  disabled={currentPage === 57}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border
-                   disabled:opacity-40 disabled:cursor-not-allowed
-                   hover:bg-gray-100 transition"
-                >
-                  Next
-                  <ChevronRight />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <Footer />
-        </div>
-      )}
+      <Footer />
     </div>
   );
 }

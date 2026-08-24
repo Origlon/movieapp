@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 
 import { Header } from "../../features/Header";
 import { Footer } from "../../features/Footer";
+import { MovieSkeleton } from "@/app/components/MovieSkeleton";
 
 const genres = [
   { id: 28, name: "Action" },
@@ -38,15 +39,21 @@ export default function GenrePage() {
   const [movies, setMovies] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [selectedGenreIds, setSelectedGenreIds] = useState([id]);
+  const [errorMessage, setErrorMessage] = useState("");
 
+  // URL-аас genre ID-уудыг авна
+  const selectedGenreIds = id ? decodeURIComponent(String(id)).split(",") : [];
+
+  // ID-аар genre-ийн нэрүүдийг олно
   const selectedGenres = genres.filter((genre) =>
     selectedGenreIds.includes(String(genre.id)),
   );
 
   const getMoviesByGenre = async () => {
     const response = await fetch(
-      `https://api.themoviedb.org/3/discover/movie?language=en-US&with_genres=${selectedGenreIds.join("%2C")}`,
+      `https://api.themoviedb.org/3/discover/movie?language=en-US&with_genres=${selectedGenreIds.join(
+        "%2C",
+      )}`,
       {
         headers: {
           Authorization: `Bearer ${api_token}`,
@@ -54,12 +61,15 @@ export default function GenrePage() {
       },
     );
 
-    const data = await response.json();
-    return data;
+    if (!response.ok) {
+      throw new Error("Movie API error");
+    }
+
+    return response.json();
   };
 
   useEffect(() => {
-    getMoviesByGenre(id)
+    getMoviesByGenre()
       .then((response) => {
         setMovies(response.results || []);
         setTotalResults(response.total_results || 0);
@@ -67,25 +77,33 @@ export default function GenrePage() {
       .catch((error) => {
         console.error(error);
         setErrorMessage("MOVIE API ERROR");
+        setMovies([]);
+        setTotalResults(0);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [selectedGenreIds]);
+  }, [id]);
 
-  console.log(movies);
-  console.log(totalResults);
+  const handleGenreClick = (genreId) => {
+    const idString = String(genreId);
 
-  const hanldeGenreClick = (id) => {
-    if (selectedGenreIds.includes(String(id))) {
-      setSelectedGenreIds(
-        selectedGenreIds.filter((genreId) => genreId !== String(id)),
-      );
+    let newSelectedGenreIds;
+
+    if (selectedGenreIds.includes(idString)) {
+      newSelectedGenreIds = selectedGenreIds.filter((id) => id !== idString);
     } else {
-      setSelectedGenreIds([...selectedGenreIds, String(id)]);
+      newSelectedGenreIds = [...selectedGenreIds, idString];
     }
+
+    // Бүх genre-ийг арын URL-д хадгална
+    if (newSelectedGenreIds.length === 0) {
+      router.push("/genre/28");
+      return;
+    }
+
+    router.push(`/genre/${newSelectedGenreIds.join("%2C")}`);
   };
-  console.log(selectedGenreIds.join("%2C"));
 
   return (
     <div className="min-h-screen">
@@ -95,6 +113,7 @@ export default function GenrePage() {
         <h2 className="text-3xl font-semibold">Search Filter</h2>
 
         <div className="mt-6 flex gap-10 border-t border-gray-200 pt-6">
+          {/* GENRES */}
           <aside className="w-45 shrink-0">
             <h3 className="mb-2 text-lg font-semibold">Genres</h3>
 
@@ -106,7 +125,7 @@ export default function GenrePage() {
               {genres.map((genre) => (
                 <button
                   key={genre.id}
-                  onClick={() => hanldeGenreClick(genre.id)}
+                  onClick={() => handleGenreClick(genre.id)}
                   className={`flex w-fit items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold transition ${
                     selectedGenreIds.includes(String(genre.id))
                       ? "border-indigo-600 bg-indigo-600 text-white"
@@ -121,6 +140,7 @@ export default function GenrePage() {
             </div>
           </aside>
 
+          {/* MOVIES */}
           <section className="min-w-0 flex-1">
             <h3 className="mb-5 text-xl font-semibold">
               {loading
@@ -131,7 +151,15 @@ export default function GenrePage() {
             </h3>
 
             {loading ? (
-              <p className="text-sm text-gray-500">Loading movies...</p>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <MovieSkeleton key={index} />
+                ))}
+              </div>
+            ) : errorMessage ? (
+              <p className="text-sm text-red-500">{errorMessage}</p>
+            ) : movies.length === 0 ? (
+              <p className="text-sm text-gray-500">No movies found.</p>
             ) : (
               <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
                 {movies.slice(0, 8).map((movie) => (

@@ -4,11 +4,12 @@ import { Footer } from "../features/Footer";
 import { MovieSection } from "../components/Moviesection";
 import { useEffect, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { MovieSkeletonGrid } from "../components/MovieSkeletonGrid";
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
 export default function Toprated() {
-   const [topRatedData, setTopRatedData] = useState([]);
+  const [topRatedData, setTopRatedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,77 +74,84 @@ export default function Toprated() {
     return pages;
   };
   return (
-    <div>
-      {loading && <div>loading...</div>}
-      {!loading && errorMessage && <div>{errorMessage}</div>}
-      {!loading && !errorMessage && (
-        <div>
-          <Header />
-          <section className="w-full px-20 py-10">
-            <div className="mx-auto max-w-7xl">
-              <MovieSection
-                title="TOP RATED"
-                movies={topRatedData.slice(0, 10)}
-                path="/top-rated"
-                isDetailPage={true}
-              />
+    <div className="flex min-h-screen flex-col">
+      <Header />
 
-              <div className="flex justify-end items-center gap-2 mt-8">
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border
-                   disabled:opacity-40 disabled:cursor-not-allowed
-                   hover:bg-gray-100 transition"
-                >
-                  <ChevronLeft />
-                  Previous
-                </button>
+      <main className="flex-1">
+        <section className="w-full px-20 py-10">
+          <div className="mx-auto max-w-7xl">
+            {loading ? (
+              <>
+                <div className="mb-6 h-8 w-32 animate-pulse rounded bg-gray-200" />
 
-                {getPageNumbers().map((page, index) => {
-                  if (page === "...") {
-                    return (
-                      <span
-                        key={`dots-${index}`}
-                        className="px-2 py-2 text-gray-500"
-                      >
-                        ...
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`min-w-10 px-3 py-2 rounded-md border transition ${
-                        currentPage === page
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-black hover:bg-gray-100"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={handleNext}
-                  disabled={currentPage === 57}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border
-                   disabled:opacity-40 disabled:cursor-not-allowed
-                   hover:bg-gray-100 transition"
-                >
-                  Next
-                  <ChevronRight />
-                </button>
+                <MovieSkeletonGrid />
+              </>
+            ) : errorMessage ? (
+              <div className="py-10 text-center text-red-500">
+                {errorMessage}
               </div>
-            </div>
-          </section>
+            ) : (
+              <>
+                <MovieSection
+                  title="TOP RATED"
+                  movies={topRatedData.slice(0, 10)}
+                  path="/top-rated"
+                  isDetailPage={true}
+                />
 
-          <Footer />
-        </div>
-      )}
+                <div className="mt-8 flex items-center justify-end gap-2">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 rounded-md border px-3 py-2 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft />
+                    Previous
+                  </button>
+
+                  {getPageNumbers().map((page, index) => {
+                    if (page === "...") {
+                      return (
+                        <span
+                          key={`dots-${index}`}
+                          className="px-2 py-2 text-gray-500"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`min-w-10 rounded-md border px-3 py-2 transition ${
+                          currentPage === page
+                            ? "border-black bg-black text-white"
+                            : "bg-white text-black hover:bg-gray-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={handleNext}
+                    disabled={currentPage === 57}
+                    className="flex items-center gap-1 rounded-md border px-3 py-2 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                    <ChevronRight />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }

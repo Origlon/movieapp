@@ -16,7 +16,7 @@ export const Footer = () => {
               </div>
             </div>
 
-            <div className="text-sm font-normal text-[#fafafa]">
+            <div className="text-sm font-normal text-[#fafafa] pt-4">
               © 2024 Movie Z. All Rights Reserved.
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { MovieSkeleton } from "./Movieskeleton";
+import { MovieSkeleton } from "./MovieSkeleton";
 
 export const MovieSectionSkeleton = () => {
   return (

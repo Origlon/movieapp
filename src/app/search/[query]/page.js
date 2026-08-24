@@ -115,10 +115,10 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-4">
+      <main className="mx-auto w-full max-w-7xl px-4 py-4 flex-1">
         <h2 className="text-3xl font-semibold">Search Filter</h2>
 
         <div className="mt-6 flex gap-10 border-t border-gray-200 pt-6">
@@ -212,5 +212,6 @@ export default function SearchPage() {
 
       <Footer />
     </div>
+    
   );
 }

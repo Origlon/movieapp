@@ -34,6 +34,7 @@ export const Header = () => {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   const api_token =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
@@ -75,8 +76,15 @@ export const Header = () => {
 
     return () => clearTimeout(timer);
   }, [search]);
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
   return (
-    <header className="relative z-50 w-full border-b border-[#E4E4E7] bg-white">
+    <header className="relative z-50 w-full border-b border-[#E4E4E7] bg-white dark:border-gray-700 dark:bg-gray-900">
       <div className="mx-auto w-full max-w-7xl px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div
@@ -122,10 +130,10 @@ export const Header = () => {
                   }
                 }}
                 placeholder="Search..."
-                className="h-9 w-full rounded-lg border border-[#E4E4E7] pl-10 pr-3 outline-none"
+                className="h-9 w-full rounded-lg border border-[#E4E4E7] pl-10 pr-3 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
               {search.trim() && (
-                <div className="absolute left-0 top-11 z-50 w-full rounded-lg border border-[#E4E4E7] bg-white p-2 shadow-lg">
+                <div className="absolute left-0 top-11 z-50 w-full rounded-lg border border-[#E4E4E7] bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
                   {isSearching ? (
                     <p className="px-3 py-2 text-sm text-gray-500">
                       Searching...
@@ -187,7 +195,22 @@ export const Header = () => {
             </div>
           </div>
 
-          <button className="flex h-9 w-12 shrink-0 items-center justify-center rounded-md border border-[#E4E4E7]">
+          <button
+            onClick={() => {
+              const newTheme = isDark ? "light" : "dark";
+
+              setIsDark(!isDark);
+
+              if (newTheme === "dark") {
+                document.documentElement.classList.add("dark");
+                localStorage.setItem("theme", "dark");
+              } else {
+                document.documentElement.classList.remove("dark");
+                localStorage.setItem("theme", "light");
+              }
+            }}
+            className="flex h-9 w-12 shrink-0 items-center justify-center rounded-md border border-[#E4E4E7] dark:border-gray-700"
+          >
             <LightLogo />
           </button>
         </div>
