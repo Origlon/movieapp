@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ChevronDown, ChevronRight, Sun, Moon, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { HeaderLogo } from "../icon/Headerlogo";
-import { LightLogo } from "../icon/LightLogo";
-import { Search } from "../icon/Search";
 
 const genres = [
   { id: 28, name: "Action" },
@@ -30,15 +28,15 @@ const genres = [
 
 export const Header = () => {
   const [isGenreOpen, setIsGenreOpen] = useState(false);
-  const router = useRouter();
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
+  const router = useRouter();
+
   const api_token =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
-
   const searchMovies = async () => {
     if (!search.trim()) {
       setSuggestions([]);
@@ -69,6 +67,7 @@ export const Header = () => {
       setIsSearching(false);
     }
   };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       searchMovies();
@@ -76,17 +75,28 @@ export const Header = () => {
 
     return () => clearTimeout(timer);
   }, [search]);
-  useEffect(() => {
+
+  const handlleDark = () => {
+    document.documentElement.classList.add("dark");
+    setIsDark(true);
+  };
+
+  useCallback(() => {
     const savedTheme = localStorage.getItem("theme");
 
     if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
+      handlleDark();
+    } else {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
     }
   }, []);
+
   return (
-    <header className="relative z-50 w-full border-b border-[#E4E4E7] bg-white dark:border-gray-700 dark:bg-gray-900">
+    <header className="relative z-50 w-full   bg-[var(--background)]">
       <div className="mx-auto w-full max-w-7xl px-4 py-3">
         <div className="flex items-center justify-between gap-4">
+          {/* LOGO */}
           <div
             onClick={() => router.push("/")}
             className="flex shrink-0 cursor-pointer items-center gap-2"
@@ -98,13 +108,15 @@ export const Header = () => {
             </span>
           </div>
 
+          {/* GENRE + SEARCH */}
           <div
             className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* GENRE BUTTON */}
             <button
               onClick={() => setIsGenreOpen((prev) => !prev)}
-              className="flex h-9 shrink-0 items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-4"
+              className="flex h-9 shrink-0 items-center gap-2 rounded-md border border-[#E4E4E7] bg-[var(--background)] px-4 text-[var(--foreground)]"
             >
               <ChevronDown
                 size={16}
@@ -117,9 +129,15 @@ export const Header = () => {
               <span>Genre</span>
             </button>
 
+            {/* SEARCH */}
             <div className="relative w-94.75">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2" />
-
+              <Search
+                size={16}
+                strokeWidth={2}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                  isDark ? "text-white" : "text-[#09090B]"
+                }`}
+              />
               <input
                 type="text"
                 value={search}
@@ -130,10 +148,12 @@ export const Header = () => {
                   }
                 }}
                 placeholder="Search..."
-                className="h-9 w-full rounded-lg border border-[#E4E4E7] pl-10 pr-3 outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="h-9 w-full rounded-lg border border-[#E4E4E7] bg-(--background) pl-10 pr-3 text-[var(--foreground)] outline-none placeholder:text-gray-500"
               />
+
+              {/* SEARCH SUGGESTIONS */}
               {search.trim() && (
-                <div className="absolute left-0 top-11 z-50 w-full rounded-lg border border-[#E4E4E7] bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                <div className="absolute left-0 top-11 z-50 w-full rounded-lg border border-[#E4E4E7] bg-[var(--background)] p-2 text-[var(--foreground)] shadow-lg">
                   {isSearching ? (
                     <p className="px-3 py-2 text-sm text-gray-500">
                       Searching...
@@ -148,7 +168,7 @@ export const Header = () => {
                             setSuggestions([]);
                             router.push(`/detail/${movie.id}`);
                           }}
-                          className="flex cursor-pointer gap-3 rounded-md p-2 hover:bg-gray-100"
+                          className="flex cursor-pointer gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                         >
                           <img
                             src={
@@ -161,7 +181,7 @@ export const Header = () => {
                           />
 
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold">
+                            <p className="truncate text-sm font-semibold text-[var(--foreground)]">
                               {movie.title}
                             </p>
 
@@ -180,7 +200,7 @@ export const Header = () => {
                           setSearch("");
                           setSuggestions([]);
                         }}
-                        className="mt-1 w-full border-t border-[#E4E4E7] px-3 py-3 text-left text-sm font-medium text-[#4338CA] hover:bg-gray-50"
+                        className="mt-1 w-full border-t border-[#E4E4E7] px-3 py-3 text-left text-sm font-medium text-[#4338CA] hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
                         See all results for &quot;{search}&quot;
                       </button>
@@ -195,27 +215,35 @@ export const Header = () => {
             </div>
           </div>
 
+          {/* DARK MODE BUTTON */}
           <button
             onClick={() => {
-              const newTheme = isDark ? "light" : "dark";
+              setIsDark((prev) => {
+                const next = !prev;
 
-              setIsDark(!isDark);
+                if (next) {
+                  document.documentElement.classList.add("dark");
+                  localStorage.setItem("theme", "dark");
+                } else {
+                  document.documentElement.classList.remove("dark");
+                  localStorage.setItem("theme", "light");
+                }
 
-              if (newTheme === "dark") {
-                document.documentElement.classList.add("dark");
-                localStorage.setItem("theme", "dark");
-              } else {
-                document.documentElement.classList.remove("dark");
-                localStorage.setItem("theme", "light");
-              }
+                return next;
+              });
             }}
-            className="flex h-9 w-12 shrink-0 items-center justify-center rounded-md border border-[#E4E4E7] dark:border-gray-700"
+            className="flex h-9 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#E4E4E7] bg-[var(--background)] text-[var(--foreground)]"
           >
-            <LightLogo />
+            {isDark ? (
+              <Sun size={16} strokeWidth={2} />
+            ) : (
+              <Moon size={16} strokeWidth={2} />
+            )}
           </button>
         </div>
       </div>
 
+      {/* GENRE DROPDOWN */}
       {isGenreOpen && (
         <div
           className="
@@ -230,8 +258,9 @@ export const Header = () => {
             rounded-lg
             border
             border-[#E4E4E7]
-            bg-white
+            bg-[var(--background)]
             p-5
+            text-[var(--foreground)]
             shadow-lg
           "
         >
@@ -249,7 +278,23 @@ export const Header = () => {
                   setIsGenreOpen(false);
                   router.push(`/genre/${genre.id}`);
                 }}
-                className="flex h-5 items-center gap-2 rounded-full border border-[#E4E4E7] px-2.5 py-0.5 text-xs font-bold text-gray-700 transition-colors hover:border-[#4338CA] hover:text-[#4338CA]"
+                className="
+                  flex
+                  h-5
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-[var(--foreground)]
+                  px-2.5
+                  py-0.5
+                  text-xs
+                  font-bold
+                  text-[var(--foreground)]
+                  transition-colors
+                  hover:border-[#4338CA]
+                  hover:text-[#4338CA]
+                "
               >
                 <span>{genre.name}</span>
 

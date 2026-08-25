@@ -54,21 +54,15 @@ export default function SearchPage() {
       try {
         let url;
 
-        // GENRE СОНГОСОН
         if (selectedGenreIds.length > 0) {
           const genreIds = selectedGenreIds.join(",");
 
           url = `https://api.themoviedb.org/3/discover/movie?language=en-US&with_genres=${genreIds}&page=1`;
-        }
-
-        // SEARCH ХИЙСЭН
-        else {
+        } else {
           url = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(
             query,
           )}&language=en-US&page=1`;
         }
-
-        console.log("API URL:", url);
 
         const response = await fetch(url, {
           headers: {
@@ -77,9 +71,6 @@ export default function SearchPage() {
         });
 
         const data = await response.json();
-
-        console.log("API DATA:", data);
-        console.log("MOVIES:", data.results);
 
         if (!response.ok) {
           throw new Error(data.status_message || "API Error");
@@ -115,16 +106,18 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-white text-[#09090B] dark:bg-gray-900 dark:text-white">
       <Header />
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-4 flex-1">
-        <h2 className="text-3xl font-semibold">Search Filter</h2>
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-4">
+        <h2 className="text-3xl font-semibold text-[#09090B] dark:text-white">
+          Search Filter
+        </h2>
 
-        <div className="mt-6 flex gap-10 border-t border-gray-200 pt-6">
+        <div className="mt-6 flex gap-10 border-t border-gray-200 pt-6 dark:border-gray-700">
           {/* MOVIES */}
           <section className="min-w-0 flex-1">
-            <h3 className="mb-5 text-xl font-semibold">
+            <h3 className="mb-5 text-xl font-semibold text-[#09090B] dark:text-white">
               {loading
                 ? "Loading..."
                 : selectedGenres.length > 0
@@ -135,9 +128,13 @@ export default function SearchPage() {
             </h3>
 
             {loading ? (
-              <p className="text-sm text-gray-500">Loading movies...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Loading movies...
+              </p>
             ) : movies.length === 0 ? (
-              <p className="text-sm text-gray-500">No movies found.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No movies found.
+              </p>
             ) : (
               <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
                 {movies.slice(0, 8).map((movie) => (
@@ -146,7 +143,7 @@ export default function SearchPage() {
                     onClick={() => router.push(`/detail/${movie.id}`)}
                     className="group cursor-pointer"
                   >
-                    <div className="aspect-[2/3] overflow-hidden rounded-md bg-gray-100">
+                    <div className="aspect-[2/3] overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800">
                       <img
                         src={
                           movie.poster_path
@@ -158,19 +155,23 @@ export default function SearchPage() {
                       />
                     </div>
 
+                    {/* RATING */}
                     <div className="mt-2 flex items-center gap-1 text-xs">
                       <span className="text-yellow-400">★</span>
 
-                      <span className="font-semibold">
+                      <span className="font-semibold text-[#09090B] dark:text-white">
                         {movie.vote_average?.toFixed(1)}
                       </span>
 
-                      <span className="text-gray-400">/10</span>
+                      <span className="text-gray-400 dark:text-gray-500">
+                        /10
+                      </span>
                     </div>
 
-                    <p className="mt-1 text-sm font-medium text-gray-800">
+                    {/* TITLE */}
+                    <span className="mt-1 block text-xl font-medium text-gray-800 dark:text-white">
                       {movie.title}
-                    </p>
+                    </span>
                   </div>
                 ))}
               </div>
@@ -179,9 +180,11 @@ export default function SearchPage() {
 
           {/* GENRES */}
           <aside className="w-45 shrink-0">
-            <h3 className="mb-2 text-lg font-semibold">Genres</h3>
+            <h3 className="mb-2 text-lg font-semibold text-[#09090B] dark:text-white">
+              Genres
+            </h3>
 
-            <p className="mb-4 text-xs text-gray-500">
+            <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
               See lists of movies by genre
             </p>
 
@@ -196,7 +199,7 @@ export default function SearchPage() {
                     className={`flex w-fit items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold transition ${
                       isSelected
                         ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-indigo-600 hover:bg-indigo-50 hover:text-indigo-600"
+                        : "border-black bg-white text-gray-700 hover:border-indigo-600 hover:bg-indigo-50 hover:text-indigo-600 dark:border-white dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
                     <span>{genre.name}</span>
@@ -212,6 +215,5 @@ export default function SearchPage() {
 
       <Footer />
     </div>
-    
   );
 }

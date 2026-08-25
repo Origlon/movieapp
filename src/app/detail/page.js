@@ -8,7 +8,6 @@ import { Header } from "../features/Header";
 import { Footer } from "../features/Footer";
 import { MovieSection } from "../components/Moviesection";
 
-
 export default function Detail() {
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -29,7 +28,7 @@ export default function Detail() {
           </div>
 
           <div>
-            <p className="text-xs text-[#09090B]">Rating</p>
+            <p className="text-xs text-[#09090B] dark:text-gray-200">Rating</p>
 
             <div className="flex items-center gap-1">
               <div className="flex flex-col">
@@ -158,9 +157,7 @@ export default function Detail() {
         </div>
       </div>
 
-      <div className="w-full max-w-6xl px-4 mb-16">
-
-      </div>
+      <div className="w-full max-w-6xl px-4 mb-16"></div>
 
       <Footer />
     </div>

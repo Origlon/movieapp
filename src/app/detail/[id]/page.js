@@ -20,14 +20,13 @@ export default function Detail() {
 
   const [trailer, setTrailer] = useState(null);
 
-  // Trailer болон Movie-г тусдаа нээнэ
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isMovieOpen, setIsMovieOpen] = useState(false);
-
   const api_token =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
 
-  // Movie detail
+  // ================= MOVIE DETAIL =================
+
   const getData = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}?language=en-US`,
@@ -45,7 +44,8 @@ export default function Detail() {
     return response.json();
   };
 
-  // Credits
+  // ================= CREDITS =================
+
   const getCredits = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/credits?language=en-US`,
@@ -63,7 +63,8 @@ export default function Detail() {
     return response.json();
   };
 
-  // Similar movies
+  // ================= SIMILAR MOVIES =================
+
   const getSimilarMovies = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/similar?language=en-US&page=1`,
@@ -83,7 +84,8 @@ export default function Detail() {
     return data.results || [];
   };
 
-  // Videos / Trailer
+  // ================= VIDEOS / TRAILER =================
+
   const getVideos = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`,
@@ -103,12 +105,10 @@ export default function Detail() {
     return data.results || [];
   };
 
-  // Get movie + credits + similar movies
+  // ================= GET DATA =================
+
   useEffect(() => {
     if (!id) return;
-
-  
-
 
     Promise.all([getData(id), getCredits(id), getSimilarMovies(id)])
       .then(([movieData, creditsData, similarData]) => {
@@ -125,13 +125,13 @@ export default function Detail() {
       });
   }, [id]);
 
-  // Get trailer
+  // ================= GET TRAILER =================
+
   useEffect(() => {
     if (!id) return;
 
     getVideos(id)
       .then((videos) => {
-        // Эхлээд official trailer хайна
         let officialTrailer = videos.find(
           (video) =>
             video.site === "YouTube" &&
@@ -139,7 +139,6 @@ export default function Detail() {
             video.official === true,
         );
 
-        // Official байхгүй бол дурын YouTube Trailer
         if (!officialTrailer) {
           officialTrailer = videos.find(
             (video) => video.site === "YouTube" && video.type === "Trailer",
@@ -154,10 +153,12 @@ export default function Detail() {
       });
   }, [id]);
 
-  // Director
+  // ================= DIRECTOR =================
+
   const director = credits?.crew?.find((person) => person.job === "Director");
 
-  // Writers
+  // ================= WRITERS =================
+
   const writers = credits?.crew?.filter(
     (person) =>
       person.department === "Writing" ||
@@ -165,38 +166,41 @@ export default function Detail() {
       person.job === "Screenplay",
   );
 
-  // Stars
+  // ================= STARS =================
+
   const stars = credits?.cast?.slice(0, 3);
 
   return (
-    <div>
-      {/* ================= LOADING ================= */}
+    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)]">
+      {/* ================================================= */}
+      {/* LOADING */}
+      {/* ================================================= */}
 
       {loading && (
-        <div className="relative flex min-h-screen flex-col items-center">
+        <div className="flex min-h-screen flex-col items-center bg-[var(--background)] text-[var(--foreground)]">
           <Header />
 
           <div className="mt-12 mb-8 w-full max-w-6xl px-4">
             <div className="mb-6 flex items-start justify-between">
               <div className="flex flex-col">
-                <div className="h-10 w-64 animate-pulse rounded-lg bg-gray-200" />
+                <div className="h-10 w-64 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800" />
 
-                <div className="mt-2 h-6 w-48 animate-pulse rounded-lg bg-gray-200" />
+                <div className="mt-2 h-6 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800" />
               </div>
 
               <div>
-                <div className="h-4 w-12 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
 
-                <div className="mt-2 h-7 w-20 animate-pulse rounded bg-gray-200" />
+                <div className="mt-2 h-7 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
 
-                <div className="mt-1 h-3 w-8 animate-pulse rounded bg-gray-200" />
+                <div className="mt-1 h-3 w-8 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
               </div>
             </div>
 
             <div className="flex flex-col justify-between gap-8 md:flex-row">
-              <div className="h-107.5 w-full animate-pulse rounded-xl bg-gray-200 md:w-72" />
+              <div className="h-107.5 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800 md:w-72" />
 
-              <div className="h-107.5 w-full animate-pulse rounded-xl bg-gray-200" />
+              <div className="h-107.5 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800" />
             </div>
           </div>
 
@@ -204,38 +208,44 @@ export default function Detail() {
         </div>
       )}
 
-      {/* ================= ERROR ================= */}
+      {/* ================================================= */}
+      {/* ERROR */}
+      {/* ================================================= */}
 
       {!loading && errorMessage && (
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--background)] text-[var(--foreground)]">
           <p className="text-red-500">{errorMessage}</p>
         </div>
       )}
 
-      {/* ================= CONTENT ================= */}
+      {/* ================================================= */}
+      {/* DETAIL PAGE */}
+      {/* ================================================= */}
 
       {!loading && !errorMessage && movie && (
-        <div className="relative flex min-h-screen flex-col items-center">
+        <div className="relative flex min-h-screen flex-col items-center bg-[var(--background)] text-[var(--foreground)]">
           <Header />
 
           {/* ================= MOVIE HEADER ================= */}
 
           <div className="mt-12 mb-8 w-full max-w-6xl px-4">
             <div className="mb-6 flex items-start justify-between">
+              {/* TITLE */}
+
               <div className="flex flex-col">
-                <h1 className="text-4xl font-semibold leading-10 tracking-tight">
+                <h1 className="text-4xl font-semibold leading-10 tracking-tight text-[var(--foreground)]">
                   {movie.title}
                 </h1>
 
-                <p className="mt-1 text-lg font-extralight">
+                <p className="mt-1 text-lg font-extralight text-[var(--foreground)]">
                   {movie.release_date} · {movie.runtime}m
                 </p>
               </div>
 
-              {/* Rating */}
+              {/* RATING */}
 
               <div>
-                <p className="text-xs text-[#09090B]">Rating</p>
+                <span className="text-xs text-[var(--foreground)]">Rating</span>
 
                 <div className="flex items-center gap-1">
                   <div className="flex flex-col">
@@ -244,7 +254,7 @@ export default function Detail() {
                         ★
                       </span>
 
-                      <span className="text-lg font-normal">
+                      <span className="text-lg font-normal text-[var(--foreground)]">
                         {movie.vote_average?.toFixed(1)}
                       </span>
 
@@ -262,9 +272,9 @@ export default function Detail() {
             {/* ================= POSTER + BACKDROP ================= */}
 
             <div className="flex flex-col justify-between gap-8 md:flex-row">
-              {/* Poster */}
+              {/* POSTER */}
 
-              <div className="relative h-107.5 w-full shrink-0 overflow-hidden rounded-xl md:w-72">
+              <div className="relative h-107.5 w-full shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 md:w-72">
                 <img
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   alt={movie.title}
@@ -272,7 +282,7 @@ export default function Detail() {
                 />
               </div>
 
-              {/* Backdrop */}
+              {/* BACKDROP */}
 
               <div className="relative flex h-107.5 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
                 <img
@@ -281,7 +291,7 @@ export default function Detail() {
                   className="h-full w-full object-cover"
                 />
 
-             
+                {/* PLAY TRAILER */}
 
                 <div className="absolute bottom-6 left-6 z-10 flex items-center gap-3 text-white">
                   <button
@@ -299,7 +309,7 @@ export default function Detail() {
                   </span>
                 </div>
 
-       
+                {/* WATCH NOW */}
 
                 <button
                   onClick={() => setIsMovieOpen(true)}
@@ -311,7 +321,9 @@ export default function Detail() {
             </div>
           </div>
 
-      
+          {/* ================================================= */}
+          {/* TRAILER MODAL */}
+          {/* ================================================= */}
 
           {isTrailerOpen && (
             <div
@@ -322,16 +334,12 @@ export default function Detail() {
                 className="relative aspect-video w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
-             
-
                 <button
                   onClick={() => setIsTrailerOpen(false)}
                   className="absolute right-4 top-4 z-50 flex cursor-pointer items-center gap-1 rounded-full border border-white/20 bg-black/70 px-3 py-1.5 text-xs text-white transition-all hover:bg-black"
                 >
                   ✕ Close
                 </button>
-
-          
 
                 {trailer ? (
                   <iframe
@@ -350,7 +358,9 @@ export default function Detail() {
             </div>
           )}
 
-      
+          {/* ================================================= */}
+          {/* MOVIE MODAL */}
+          {/* ================================================= */}
 
           {isMovieOpen && (
             <div
@@ -361,16 +371,12 @@ export default function Detail() {
                 className="relative aspect-video w-full max-w-6xl overflow-hidden rounded-2xl bg-black shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
-
-
                 <button
                   onClick={() => setIsMovieOpen(false)}
                   className="absolute right-4 top-4 z-50 flex cursor-pointer items-center gap-1 rounded-full border border-white/20 bg-black/70 px-3 py-1.5 text-xs text-white transition-all hover:bg-black"
                 >
                   ✕ Close
                 </button>
-
-                
 
                 <iframe
                   className="h-full w-full"
@@ -383,64 +389,77 @@ export default function Detail() {
             </div>
           )}
 
-          
+          {/* ================================================= */}
+          {/* GENRES + OVERVIEW + INFO */}
+          {/* ================================================= */}
 
           <div className="mb-8 flex w-full max-w-6xl flex-col gap-5 px-4">
-          
+            {/* GENRES */}
 
             <div className="flex flex-wrap gap-2">
               {movie.genres?.map((genre) => (
                 <span
                   key={genre.id}
-                  className="rounded-full border border-[#E4E4E7] bg-white px-3 py-1 text-xs font-medium"
+                  className="rounded-full border border-[#E4E4E7] bg-[var(--background)] px-3 py-1 text-xs font-medium text-[var(--foreground)] dark:border-gray-600"
                 >
                   {genre.name}
                 </span>
               ))}
             </div>
 
-       
+            {/* OVERVIEW */}
 
             <div>
-              <p className="text-base leading-relaxed text-gray-800">
+              <p className="text-base leading-relaxed text-[var(--foreground)]">
                 {movie.overview}
               </p>
             </div>
 
-    
+            {/* DIRECTOR / WRITERS / STARS */}
 
             <div className="flex flex-col gap-4">
-           
+              {/* DIRECTOR */}
 
-              <div className="flex gap-12 border-b border-[#E4E4E7] pb-3">
-                <p className="w-20 shrink-0 text-base font-bold">Director</p>
+              <div className="flex gap-12 border-b border-[#E4E4E7] pb-3 dark:border-gray-700">
+                <p className="w-20 shrink-0 text-base font-bold text-[var(--foreground)]">
+                  Director
+                </p>
 
-                <p className="text-base font-light">
+                <p className="text-base font-light text-[var(--foreground)]">
                   {director?.name || "Unknown"}
                 </p>
               </div>
 
+              {/* WRITERS */}
 
-              <div className="flex gap-12 border-b border-[#E4E4E7] pb-3">
-                <p className="w-20 shrink-0 text-base font-bold">Writers</p>
+              <div className="flex gap-12 border-b border-[#E4E4E7] pb-3 dark:border-gray-700">
+                <p className="w-20 shrink-0 text-base font-bold text-[var(--foreground)]">
+                  Writers
+                </p>
 
-                <p className="text-base font-light">
+                <p className="text-base font-light text-[var(--foreground)]">
                   {writers?.map((writer) => writer.name).join(" · ") ||
                     "Unknown"}
                 </p>
               </div>
 
+              {/* STARS */}
 
-              <div className="flex gap-12 border-b border-[#E4E4E7] pb-3">
-                <p className="w-20 shrink-0 text-base font-bold">Stars</p>
+              <div className="flex gap-12 border-b border-[#E4E4E7] pb-3 dark:border-gray-700">
+                <p className="w-20 shrink-0 text-base font-bold text-[var(--foreground)]">
+                  Stars
+                </p>
 
-                <p className="text-base font-light">
+                <p className="text-base font-light text-[var(--foreground)]">
                   {stars?.map((star) => star.name).join(" · ") || "Unknown"}
                 </p>
               </div>
             </div>
           </div>
 
+          {/* ================================================= */}
+          {/* MORE LIKE THIS */}
+          {/* ================================================= */}
 
           <div className="mb-16 w-full max-w-6xl px-4">
             <MovieSection
@@ -449,8 +468,6 @@ export default function Detail() {
               path={`/similiar/${id}`}
             />
           </div>
-
-         
 
           <Footer />
         </div>

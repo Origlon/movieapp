@@ -126,7 +126,7 @@ export default function GenrePage() {
                 <button
                   key={genre.id}
                   onClick={() => handleGenreClick(genre.id)}
-                  className={`flex w-fit items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold transition ${
+                  className={`flex w-fit items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold transition text-[var(--foreground)] ${
                     selectedGenreIds.includes(String(genre.id))
                       ? "border-indigo-600 bg-indigo-600 text-white"
                       : "border-gray-200 bg-white text-gray-700 hover:border-indigo-600 hover:bg-indigo-50 hover:text-indigo-600"
@@ -190,9 +190,9 @@ export default function GenrePage() {
                       <span className="text-gray-400">/10</span>
                     </div>
 
-                    <p className="mt-1 text-sm font-medium text-gray-800">
+                    <span className="mt-1 block text-sm font-medium text-[var(--foreground)]">
                       {movie.title}
-                    </p>
+                    </span>
                   </div>
                 ))}
               </div>
