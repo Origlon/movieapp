@@ -7,7 +7,7 @@ import { Play } from "lucide-react";
 import { Header } from "../features/Header";
 import { Footer } from "../features/Footer";
 import { MovieSection } from "../components/Moviesection";
-import { MoreLikethis,  } from "../data/movies";
+
 
 export default function Detail() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -159,7 +159,7 @@ export default function Detail() {
       </div>
 
       <div className="w-full max-w-6xl px-4 mb-16">
-        <MovieSection title="More Like This" movies={MoreLikethis} />
+
       </div>
 
       <Footer />
