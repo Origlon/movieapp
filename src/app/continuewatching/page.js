@@ -65,7 +65,7 @@ export default function ContinueWatching() {
 
   return (
     <section className="mb-16">
-      {/* Header */}
+      {/* HEADER */}
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-2xl font-extrabold uppercase">Continue Watching</h2>
 
@@ -78,22 +78,43 @@ export default function ContinueWatching() {
         </button>
       </div>
 
-      {/* Movies */}
-      <div className="flex gap-6">
-        {recent.map((movie) => (
+      {/* MOVIES */}
+      <div className="flex justify-center gap-[10px] sm:justify-start sm:gap-6">
+        {recent.map((movie, index) => (
           <div
             key={movie.id}
             onClick={() => router.push(`/detail/${movie.id}`)}
-            className="w-[180px] shrink-0 cursor-pointer transition-transform duration-200 hover:scale-105"
+            className={`
+              w-[157.5px]
+              shrink-0
+              cursor-pointer
+              transition-transform
+              duration-200
+              hover:scale-105
+
+              ${index >= 2 ? "hidden sm:block" : ""}
+
+              sm:w-[180px]
+            `}
           >
+            {/* POSTER */}
             <div className="relative overflow-hidden rounded-lg">
               <img
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
-                className="aspect-[2/3] w-full object-cover"
+                className="
+                  h-[233.1px]
+                  w-[157.5px]
+                  rounded-lg
+                  object-cover
+
+                  sm:h-[270px]
+                  sm:w-[180px]
+                "
               />
 
-              <div className="absolute bottom-0 left-0 h-[7px] w-full bg-[#26262E]">
+              {/* PROGRESS */}
+              <div className="absolute bottom-0 left-0 h-[8px] w-full bg-[#26262E]">
                 <div
                   className="h-full bg-[#6C5CE7]"
                   style={{
@@ -103,10 +124,12 @@ export default function ContinueWatching() {
               </div>
             </div>
 
+            {/* TITLE */}
             <h3 className="mt-2 truncate text-[15px] font-semibold">
               {movie.title}
             </h3>
 
+            {/* TIME */}
             <p className="mt-1 text-xs font-medium text-[#9A9AA6]">
               {timeAgo(movie.openedAt)}
             </p>

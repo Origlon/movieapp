@@ -4,6 +4,7 @@ import { MovieCard } from "./Moviecard";
 import { useRouter } from "next/navigation";
 import { MoveLeft, MoveRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+
 export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
   const router = useRouter();
 
@@ -14,9 +15,11 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
       router.push(path);
     }
   };
+
   const handleMovieClick = (movie) => {
     router.push(`/detail/${movie.id}`);
   };
+
   const [watchlist, setWatchlist] = useState([]);
 
   useCallback(() => {
@@ -28,6 +31,7 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
   useEffect(() => {
     localStorage.setItem("watchlist", JSON.stringify(watchlist));
   }, [watchlist]);
+
   const toggleWatchlist = (movie) => {
     setWatchlist((prev) => {
       const exists = prev.some((item) => item.id === movie.id);
@@ -39,6 +43,7 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
       return [...prev, movie];
     });
   };
+
   return (
     <section className="mb-16">
       <div className="flex items-center justify-between mb-8">
@@ -70,7 +75,7 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
             className="cursor-pointer transition-transform duration-200 hover:scale-105"
           >
             <MovieCard
-            movie={movie}
+              movie={movie}
               image={
                 movie.poster_path
                   ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`

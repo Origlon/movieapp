@@ -58,7 +58,6 @@ export const MovieCard = ({ image, title, rating, movie }) => {
       // Remove
       list = list.filter((item) => item.id !== movie.id);
 
-      // UI-г шууд update
       setIsSaved(false);
     } else {
       // Add
@@ -73,23 +72,18 @@ export const MovieCard = ({ image, title, rating, movie }) => {
         ...list,
       ];
 
-      // UI-г шууд update
       setIsSaved(true);
     }
 
-    // Storage update
     try {
       localStorage.setItem("moviez:watchlist", JSON.stringify(list));
-    } catch {
-      // localStorage дүүрсэн байсан ч page crash хийхгүй
-    }
+    } catch {}
 
-    // Бусад MovieCard-уудыг update хийнэ
     window.dispatchEvent(new Event("watchlistChanged"));
   };
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <img
         src={image}
         alt={title}

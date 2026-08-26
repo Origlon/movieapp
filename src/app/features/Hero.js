@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
+
 export const Hero = () => {
   const [nowPlayingData, setNowPlayingData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +13,10 @@ export const Hero = () => {
 
   const [trailer, setTrailer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
- 
+
+  // =========================
+  // WHEEL / TRACKPAD
+  // =========================
 
   const handleWheel = (e) => {
     if (nowPlayingData.length === 0) return;
@@ -25,6 +29,11 @@ export const Hero = () => {
       }
     }
   };
+
+  // =========================
+  // GET NOW PLAYING
+  // =========================
+
   const getData = async () => {
     const response = await fetch(
       "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1",
@@ -35,10 +44,19 @@ export const Hero = () => {
       },
     );
 
+    if (!response.ok) {
+      throw new Error("Movie API error");
+    }
+
     const jsonData = await response.json();
 
     return jsonData.results;
   };
+
+  // =========================
+  // GET VIDEOS
+  // =========================
+
   const getVideos = async (id) => {
     const response = await fetch(
       `https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`,
@@ -50,12 +68,7 @@ export const Hero = () => {
       },
     );
 
-    console.log("VIDEO STATUS:", response.status);
-    console.log("VIDEO OK:", response.ok);
-
     const data = await response.json();
-
-    console.log("VIDEO RESPONSE:", data);
 
     if (!response.ok) {
       throw new Error(data.status_message || "Videos API error");
@@ -64,19 +77,17 @@ export const Hero = () => {
     return data.results || [];
   };
 
+  // =========================
+  // TRAILER
+  // =========================
+
   const handleTrailer = async (movieId) => {
     try {
-      console.log("CLICKED MOVIE:", movieId);
-
       const videos = await getVideos(movieId);
-
-      console.log("ALL VIDEOS:", videos);
 
       const youtubeVideos = videos.filter(
         (video) => video.site === "YouTube" && video.key,
       );
-
-      console.log("YOUTUBE VIDEOS:", youtubeVideos);
 
       const trailerVideo =
         youtubeVideos.find(
@@ -85,14 +96,10 @@ export const Hero = () => {
         youtubeVideos.find((video) => video.type === "Trailer") ||
         youtubeVideos.find((video) => video.type === "Teaser");
 
-      console.log("SELECTED VIDEO:", trailerVideo);
-
       if (!trailerVideo) {
         alert("Trailer олдсонгүй");
         return;
       }
-
-      console.log("YOUTUBE KEY:", trailerVideo.key);
 
       setTrailer(trailerVideo);
       setIsPlaying(true);
@@ -100,6 +107,11 @@ export const Hero = () => {
       console.error("TRAILER ERROR:", error);
     }
   };
+
+  // =========================
+  // LOAD DATA
+  // =========================
+
   useEffect(() => {
     getData()
       .then((data) => {
@@ -113,6 +125,10 @@ export const Hero = () => {
         setLoading(false);
       });
   }, []);
+
+  // =========================
+  // SLIDES
+  // =========================
 
   const nextSlide = () => {
     if (nowPlayingData.length === 0) return;
@@ -128,37 +144,115 @@ export const Hero = () => {
     );
   };
 
+  // =========================
+  // CLOSE TRAILER
+  // =========================
+
   const closeTrailer = () => {
     setIsPlaying(false);
     setTrailer(null);
   };
 
   return (
-    <div>
+    <div className="w-full">
+      {/* ========================= */}
+      {/* LOADING */}
+      {/* ========================= */}
+
       {loading && (
-        <div className="flex aspect-1440/500 w-full items-center justify-center bg-gray-200"
-        onWheel={handleWheel}>
+        <div
+          onWheel={handleWheel}
+          className="
+            flex
+            h-[430px]
+            w-full
+            items-center
+            justify-center
+            bg-gray-200
+
+            sm:aspect-[1440/500]
+            sm:h-auto
+          "
+        >
           Loading...
         </div>
       )}
 
+      {/* ========================= */}
+      {/* ERROR */}
+      {/* ========================= */}
+
       {!loading && errorMessage && (
-        <div className="flex aspect-1440/500 w-full items-center justify-center bg-black text-white">
+        <div
+          className="
+            flex
+            h-[430px]
+            w-full
+            items-center
+            justify-center
+            bg-black
+            text-white
+
+            sm:aspect-[1440/500]
+            sm:h-auto
+          "
+        >
           {errorMessage}
         </div>
       )}
 
+      {/* ========================= */}
+      {/* EMPTY */}
+      {/* ========================= */}
+
       {!loading && !errorMessage && nowPlayingData.length === 0 && (
-        <div className="flex aspect-1440/500 w-full items-center justify-center bg-black text-white">
+        <div
+          className="
+              flex
+              h-[430px]
+              w-full
+              items-center
+              justify-center
+              bg-black
+              text-white
+
+              sm:aspect-[1440/500]
+              sm:h-auto
+            "
+        >
           No movies found
         </div>
       )}
 
+      {/* ========================= */}
+      {/* HERO */}
+      {/* ========================= */}
+
       {!loading && !errorMessage && nowPlayingData.length > 0 && (
-        <div className="relative aspect-1440/500 w-full">
+        <div
+          onWheel={handleWheel}
+          className="
+              relative
+              h-[430px]
+              w-full
+              overflow-hidden
+
+              sm:aspect-[1440/500]
+              sm:h-auto
+            "
+        >
+          {/* SLIDER */}
+
           <div className="relative h-full w-full overflow-hidden">
             <div
-              className="flex h-full w-full transition-transform duration-700 ease-in-out"
+              className="
+                  flex
+                  h-full
+                  w-full
+                  transition-transform
+                  duration-700
+                  ease-in-out
+                "
               style={{
                 transform: `translateX(-${current * 100}%)`,
               }}
@@ -166,8 +260,15 @@ export const Hero = () => {
               {nowPlayingData.map((movie) => (
                 <div
                   key={movie.id}
-                  className="relative h-full min-w-full shrink-0"
+                  className="
+                      relative
+                      h-full
+                      min-w-full
+                      shrink-0
+                    "
                 >
+                  {/* BACKDROP */}
+
                   <img
                     src={
                       movie.backdrop_path
@@ -175,35 +276,157 @@ export const Hero = () => {
                         : "/pictures/placeholder.jpg"
                     }
                     alt={movie.title}
-                    className="absolute inset-0 h-full w-full object-cover object-[center_-0%]"
+                    className="
+                        absolute
+                        inset-0
+                        h-full
+                        w-full
+                        object-cover
+
+                        object-[60%_center]
+
+                        sm:object-center
+                      "
                   />
 
-                  <div className="absolute inset-0 bg-black/40" />
+                  {/* DARK OVERLAY */}
 
-                  <div className="absolute left-[8%] top-1/2 w-[80%] max-w-100 -translate-y-1/2 text-white">
-                    <p className="text-sm">Now Playing:</p>
+                  <div className="absolute inset-0 bg-black/50" />
 
-                    <h1 className="text-2xl font-bold sm:text-3xl md:text-4xl">
+                  {/* LEFT GRADIENT */}
+
+                  <div
+                    className="
+                        absolute
+                        inset-0
+                        bg-gradient-to-r
+                        from-black/80
+                        via-black/40
+                        to-transparent
+                      "
+                  />
+
+                  {/* CONTENT */}
+
+                  <div
+                    className="
+                        absolute
+                        left-5
+                        top-1/2
+                        w-[calc(100%-40px)]
+                        -translate-y-1/2
+                        text-white
+
+                        sm:left-[8%]
+                        sm:w-[80%]
+                        sm:max-w-100
+                      "
+                  >
+                    {/* NOW PLAYING */}
+
+                    <p
+                      className="
+                          mb-1
+                          text-xs
+                          font-medium
+                          text-white/80
+
+                          sm:text-sm
+                        "
+                    >
+                      Now Playing:
+                    </p>
+
+                    {/* TITLE */}
+
+                    <h1
+                      className="
+                          line-clamp-2
+                          text-2xl
+                          font-bold
+                          leading-tight
+
+                          sm:text-3xl
+                          md:text-4xl
+                        "
+                    >
                       {movie.title}
                     </h1>
 
-                    <div className="my-2 flex items-center gap-1">
-                      <span className="text-xl text-yellow-400 sm:text-2xl">
+                    {/* RATING */}
+
+                    <div
+                      className="
+                          my-2
+                          flex
+                          items-center
+                          gap-1
+                        "
+                    >
+                      <span
+                        className="
+                            text-lg
+                            text-yellow-400
+
+                            sm:text-2xl
+                          "
+                      >
                         ★
                       </span>
 
-                      <span className="text-sm">
-                        {movie.vote_average?.toFixed(1)}/10
+                      <span
+                        className="
+                            text-xs
+
+                            sm:text-sm
+                          "
+                      >
+                        {movie.vote_average?.toFixed(1)}
+                        /10
                       </span>
                     </div>
 
-                    <p className="mb-5 text-xs leading-4 sm:text-sm">
+                    {/* OVERVIEW */}
+
+                    <p
+                      className="
+                          mb-4
+                          line-clamp-3
+                          text-xs
+                          leading-4
+                          text-white/90
+
+                          sm:mb-5
+                          sm:text-sm
+                          sm:leading-5
+                        "
+                    >
                       {movie.overview}
                     </p>
 
+                    {/* TRAILER BUTTON */}
+
                     <button
                       onClick={() => handleTrailer(movie.id)}
-                      className="flex items-center gap-2 rounded bg-white px-4 py-2 text-sm text-black transition-transform duration-200 hover:scale-110"
+                      className="
+                          flex
+                          items-center
+                          gap-2
+                          rounded-md
+                          bg-white
+                          px-3
+                          py-2
+                          text-xs
+                          font-medium
+                          text-black
+                          transition-transform
+                          duration-200
+                          hover:scale-105
+
+                          sm:px-4
+                          sm:py-2
+                          sm:text-sm
+                        "
                     >
                       ▶ Watch Trailer
                     </button>
@@ -212,45 +435,171 @@ export const Hero = () => {
               ))}
             </div>
 
+            {/* ========================= */}
+            {/* PREVIOUS */}
+            {/* ========================= */}
+
             <button
               onClick={prevSlide}
-              className="absolute left-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-black hover:bg-white sm:left-5 sm:h-10 sm:w-10"
+              aria-label="Previous movie"
+              className="
+                  absolute
+                  left-3
+                  top-1/2
+                  z-10
+                  flex
+                  h-8
+                  w-8
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white/80
+                  text-sm
+                  text-black
+                  transition
+                  hover:bg-white
+
+                  sm:left-5
+                  sm:h-10
+                  sm:w-10
+                  sm:text-base
+                "
             >
               ←
             </button>
 
+            {/* ========================= */}
+            {/* NEXT */}
+            {/* ========================= */}
+
             <button
               onClick={nextSlide}
-              className="absolute right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-black hover:bg-white sm:right-5 sm:h-10 sm:w-10"
+              aria-label="Next movie"
+              className="
+                  absolute
+                  right-3
+                  top-1/2
+                  z-10
+                  flex
+                  h-8
+                  w-8
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white/80
+                  text-sm
+                  text-black
+                  transition
+                  hover:bg-white
+
+                  sm:right-5
+                  sm:h-10
+                  sm:w-10
+                  sm:text-base
+                "
             >
               →
             </button>
 
-            <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2 sm:bottom-8">
+            {/* ========================= */}
+            {/* DOTS */}
+            {/* ========================= */}
+
+            <div
+              className="
+                  absolute
+                  bottom-4
+                  left-1/2
+                  z-10
+                  flex
+                  -translate-x-1/2
+                  gap-1.5
+
+                  sm:bottom-8
+                  sm:gap-2
+                "
+            >
               {nowPlayingData.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrent(index)}
-                  className={`h-2 rounded-full transition-all ${
-                    current === index ? "w-6 bg-white" : "w-2 bg-white/40"
-                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`
+                      h-1.5
+                      rounded-full
+                      transition-all
+
+                      ${
+                        current === index
+                          ? "w-5 bg-white sm:w-6"
+                          : "w-1.5 bg-white/40"
+                      }
+                    `}
                 />
               ))}
             </div>
           </div>
 
+          {/* ========================= */}
+          {/* TRAILER MODAL */}
+          {/* ========================= */}
+
           {isPlaying && trailer && (
             <div
-              className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md sm:p-8"
+              className="
+                  fixed
+                  inset-0
+                  z-[999]
+                  flex
+                  items-center
+                  justify-center
+                  bg-black/80
+                  p-3
+                  backdrop-blur-md
+
+                  sm:p-8
+                "
               onClick={closeTrailer}
             >
               <div
-                className="relative aspect-video w-full max-w-5xl overflow-hidden rounded-2xl bg-black shadow-2xl"
+                className="
+                    relative
+                    aspect-video
+                    w-full
+                    max-w-5xl
+                    overflow-hidden
+                    rounded-xl
+                    bg-black
+                    shadow-2xl
+
+                    sm:rounded-2xl
+                  "
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={closeTrailer}
-                  className="absolute right-4 top-4 z-50 rounded-full bg-black/70 px-3 py-1.5 text-xs text-white transition hover:bg-black"
+                  className="
+                      absolute
+                      right-2
+                      top-2
+                      z-50
+                      rounded-full
+                      bg-black/70
+                      px-2.5
+                      py-1
+                      text-[10px]
+                      text-white
+                      transition
+                      hover:bg-black
+
+                      sm:right-4
+                      sm:top-4
+                      sm:px-3
+                      sm:py-1.5
+                      sm:text-xs
+                    "
                 >
                   ✕ Close
                 </button>
@@ -259,7 +608,14 @@ export const Hero = () => {
                   className="h-full w-full"
                   src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`}
                   title={trailer.name}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="
+                      accelerometer;
+                      autoplay;
+                      clipboard-write;
+                      encrypted-media;
+                      gyroscope;
+                      picture-in-picture
+                    "
                   allowFullScreen
                 />
               </div>
