@@ -6,6 +6,7 @@ import { MovieSection } from "./components/Moviesection";
 import { useEffect, useState } from "react";
 import { MovieSectionSkeleton } from "./components/Moviesectionskeleton";
 import { HeroSkeleton } from "./components/Heroskeleton";
+import ContinueWatching from "./continuewatching/page";
 const api_token =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
 export default function Home() {
@@ -73,6 +74,7 @@ export default function Home() {
 
           <section className="w-full px-20 py-10">
             <div className="mx-auto max-w-7xl">
+              <ContinueWatching/>
               <MovieSection
                 title="UPCOMING"
                 movies={upcomingData.slice(0, 10)}

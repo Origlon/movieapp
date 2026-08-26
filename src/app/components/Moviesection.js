@@ -3,7 +3,7 @@
 import { MovieCard } from "./Moviecard";
 import { useRouter } from "next/navigation";
 import { MoveLeft, MoveRight } from "lucide-react";
-
+import { useCallback, useEffect, useState } from "react";
 export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
   const router = useRouter();
 
@@ -15,9 +15,30 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
     }
   };
   const handleMovieClick = (movie) => {
-router.push(`/detail/${movie.id}`)
-  }
+    router.push(`/detail/${movie.id}`);
+  };
+  const [watchlist, setWatchlist] = useState([]);
 
+  useCallback(() => {
+    const saved = JSON.parse(localStorage.getItem("watchlist") || "[]");
+
+    setWatchlist(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("watchlist", JSON.stringify(watchlist));
+  }, [watchlist]);
+  const toggleWatchlist = (movie) => {
+    setWatchlist((prev) => {
+      const exists = prev.some((item) => item.id === movie.id);
+
+      if (exists) {
+        return prev.filter((item) => item.id !== movie.id);
+      }
+
+      return [...prev, movie];
+    });
+  };
   return (
     <section className="mb-16">
       <div className="flex items-center justify-between mb-8">
@@ -49,6 +70,7 @@ router.push(`/detail/${movie.id}`)
             className="cursor-pointer transition-transform duration-200 hover:scale-105"
           >
             <MovieCard
+            movie={movie}
               image={
                 movie.poster_path
                   ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
@@ -60,6 +82,8 @@ router.push(`/detail/${movie.id}`)
                   ? movie.vote_average.toFixed(1)
                   : movie.rating
               }
+              isWatchlisted={watchlist.some((item) => item.id === movie.id)}
+              onWatchlist={() => toggleWatchlist(movie)}
             />
           </div>
         ))}

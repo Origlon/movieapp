@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { ChevronDown, ChevronRight, Sun, Moon, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Sun,
+  Moon,
+  Search,
+  Heart,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { HeaderLogo } from "../icon/Headerlogo";
 
@@ -32,11 +39,14 @@ export const Header = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [watchlistCount, setWatchlistCount] = useState(0);
 
   const router = useRouter();
 
   const api_token =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
+
+  // SEARCH
   const searchMovies = async () => {
     if (!search.trim()) {
       setSuggestions([]);
@@ -76,26 +86,84 @@ export const Header = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const handlleDark = () => {
-    document.documentElement.classList.add("dark");
-    setIsDark(true);
-  };
-
-  useCallback(() => {
+  // THEME + WATCHLIST LOAD
+  useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
 
     if (savedTheme === "dark") {
-      handlleDark();
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
     } else {
       document.documentElement.classList.remove("dark");
       setIsDark(false);
     }
+
+    const savedWatchlist = localStorage.getItem("watchlist");
+
+    if (savedWatchlist) {
+      try {
+        const list = JSON.parse(savedWatchlist);
+
+        setWatchlistCount(Array.isArray(list) ? list.length : 0);
+      } catch {
+        setWatchlistCount(0);
+      }
+    } else {
+      setWatchlistCount(0);
+    }
+  }, []);
+
+  // THEME TOGGLE
+  const handleThemeToggle = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+
+      if (next) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+      }
+
+      return next;
+    });
+  };
+
+
+  useEffect(() => {
+    const updateWatchlistCount = () => {
+      try {
+        const saved = localStorage.getItem("moviez:watchlist");
+
+        if (!saved) {
+          setWatchlistCount(0);
+          return;
+        }
+
+        const list = JSON.parse(saved);
+
+        setWatchlistCount(Array.isArray(list) ? list.length : 0);
+      } catch {
+        setWatchlistCount(0);
+      }
+    };
+
+    // Эхний удаа уншина
+    updateWatchlistCount();
+
+    // Heart дарахад шууд дахин уншина
+    window.addEventListener("watchlistChanged", updateWatchlistCount);
+
+    return () => {
+      window.removeEventListener("watchlistChanged", updateWatchlistCount);
+    };
   }, []);
 
   return (
-    <header className="relative z-50 w-full   bg-[var(--background)]">
+    <header className="relative z-50 w-full bg-[var(--background)]">
       <div className="mx-auto w-full max-w-7xl px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
+        <div className="relative flex items-center justify-between gap-4">
           {/* LOGO */}
           <div
             onClick={() => router.push("/")}
@@ -108,12 +176,12 @@ export const Header = () => {
             </span>
           </div>
 
-          {/* GENRE + SEARCH */}
+          {/* GENRE + SEARCH + WATCHLIST */}
           <div
             className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* GENRE BUTTON */}
+            {/* GENRE */}
             <button
               onClick={() => setIsGenreOpen((prev) => !prev)}
               className="flex h-9 shrink-0 items-center gap-2 rounded-md border border-[#E4E4E7] bg-[var(--background)] px-4 text-[var(--foreground)]"
@@ -138,6 +206,7 @@ export const Header = () => {
                   isDark ? "text-white" : "text-[#09090B]"
                 }`}
               />
+
               <input
                 type="text"
                 value={search}
@@ -145,6 +214,9 @@ export const Header = () => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && search.trim()) {
                     router.push(`/search/${encodeURIComponent(search.trim())}`);
+
+                    setSearch("");
+                    setSuggestions([]);
                   }
                 }}
                 placeholder="Search..."
@@ -153,86 +225,30 @@ export const Header = () => {
 
               {/* SEARCH SUGGESTIONS */}
               {search.trim() && (
-                <div className="absolute left-0 top-11 z-50 w-full rounded-lg border border-[#E4E4E7] bg-[var(--background)] p-2 text-[var(--foreground)] shadow-lg">
-                  {isSearching ? (
-                    <p className="px-3 py-2 text-sm text-gray-500">
-                      Searching...
-                    </p>
-                  ) : suggestions.length > 0 ? (
-                    <>
-                      {suggestions.slice(0, 4).map((movie) => (
-                        <div
-                          key={movie.id}
-                          onClick={() => {
-                            setSearch("");
-                            setSuggestions([]);
-                            router.push(`/detail/${movie.id}`);
-                          }}
-                          className="flex cursor-pointer gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        >
-                          <img
-                            src={
-                              movie.poster_path
-                                ? `https://image.tmdb.org/t/p/w92${movie.poster_path}`
-                                : "/placeholder.jpg"
-                            }
-                            alt={movie.title}
-                            className="h-14 w-10 rounded object-cover"
-                          />
-
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-[var(--foreground)]">
-                              {movie.title}
-                            </p>
-
-                            <p className="text-xs text-gray-500">
-                              {movie.release_date?.slice(0, 4)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                      <button
-                        onClick={() => {
-                          router.push(
-                            `/search/${encodeURIComponent(search.trim())}`,
-                          );
-                          setSearch("");
-                          setSuggestions([]);
-                        }}
-                        className="mt-1 w-full border-t border-[#E4E4E7] px-3 py-3 text-left text-sm font-medium text-[#4338CA] hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        See all results for &quot;{search}&quot;
-                      </button>
-                    </>
-                  ) : (
-                    <p className="px-3 py-2 text-sm text-gray-500">
-                      No movies found.
-                    </p>
-                  )}
-                </div>
+                <div className="absolute left-0 top-11 z-50 w-full rounded-lg border border-[#E4E4E7] bg-[var(--background)] p-2 text-[var(--foreground)] shadow-lg"></div>
               )}
             </div>
+
+            <button
+              onClick={() => router.push("/watchlist")}
+              className="relative flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-[#E4E4E7] bg-[var(--background)] px-3 text-[var(--foreground)] transition hover:border-red-500 hover:text-red-500"
+              title="Watchlist"
+            >
+              <Heart size={17} strokeWidth={2} />
+
+              <span className="text-sm font-medium">Watchlist</span>
+
+              {watchlistCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {watchlistCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* DARK MODE BUTTON */}
           <button
-            onClick={() => {
-              setIsDark((prev) => {
-                const next = !prev;
-
-                if (next) {
-                  document.documentElement.classList.add("dark");
-                  localStorage.setItem("theme", "dark");
-                } else {
-                  document.documentElement.classList.remove("dark");
-                  localStorage.setItem("theme", "light");
-                }
-
-                return next;
-              });
-            }}
-            className="flex h-9 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#E4E4E7] bg-[var(--background)] text-[var(--foreground)]"
+            onClick={handleThemeToggle}
+            className="ml-auto flex h-9 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#E4E4E7] bg-[var(--background)] text-[var(--foreground)]"
           >
             {isDark ? (
               <Sun size={16} strokeWidth={2} />
@@ -258,9 +274,9 @@ export const Header = () => {
             rounded-lg
             border
             border-[#E4E4E7]
-            bg-[var(--background)]
+            bg-(--background)
             p-5
-            text-[var(--foreground)]
+            text-(--foreground)
             shadow-lg
           "
         >
@@ -285,12 +301,12 @@ export const Header = () => {
                   gap-2
                   rounded-full
                   border
-                  border-[var(--foreground)]
+                  border-(--foreground)
                   px-2.5
                   py-0.5
                   text-xs
                   font-bold
-                  text-[var(--foreground)]
+                  text-(--foreground)
                   transition-colors
                   hover:border-[#4338CA]
                   hover:text-[#4338CA]

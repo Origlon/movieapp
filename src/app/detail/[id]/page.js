@@ -169,7 +169,106 @@ export default function Detail() {
   // ================= STARS =================
 
   const stars = credits?.cast?.slice(0, 3);
+  useEffect(() => {
+    if (!movie) return;
 
+    try {
+      const saved = localStorage.getItem("moviez:recent");
+
+      let recent = [];
+
+      try {
+        recent = saved ? JSON.parse(saved) : [];
+      } catch {
+        recent = [];
+      }
+
+      if (!Array.isArray(recent)) {
+        recent = [];
+      }
+
+      const filtered = recent.filter((item) => item.id !== movie.id);
+
+      const next = [
+        {
+          id: movie.id,
+          title: movie.title,
+          poster_path: movie.poster_path,
+          vote_average: movie.vote_average,
+          openedAt: Date.now(),
+        },
+        ...filtered,
+      ];
+
+      localStorage.setItem("moviez:recent", JSON.stringify(next.slice(0, 10)));
+    } catch {}
+  }, [movie]);
+
+  const [currentTime, setCurrentTime] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let latestTime = 0;
+    let latestProgress = 0;
+    let latestMovieId = null;
+
+    const handleMessage = (event) => {
+      if (typeof event.data !== "string") return;
+
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.data.currentTime !== undefined) {
+          latestTime = Number(data.data.currentTime);
+        }
+        if (data.data.progress !== undefined) {
+          latestProgress = Number(data.data.progress);
+        }
+        if (data.data?.id !== undefined) {
+          latestMovieId = String(data.data.id);
+        }
+      } catch {}
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    const interval = setInterval(() => {
+      setCurrentTime(latestTime);
+      setProgress(latestProgress);
+
+      if (!latestMovieId) return;
+
+      try {
+        const saved = localStorage.getItem("moviez:recent");
+
+        if (!saved) return;
+
+        const recent = JSON.parse(saved);
+
+        if (!Array.isArray(recent)) return;
+
+        const updated = recent.map((movie) => {
+          if (String(movie.id) !== latestMovieId) {
+            return movie;
+          }
+
+          return {
+            ...movie,
+            progress: latestProgress,
+          };
+        });
+
+        localStorage.setItem("moviez:recent", JSON.stringify(updated));
+      } catch {}
+    }, 10000);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      clearInterval(interval);
+    };
+  }, []);
+  console.log(currentTime);
+  console.log(progress);
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)]">
       {/* ================================================= */}
@@ -208,30 +307,18 @@ export default function Detail() {
         </div>
       )}
 
-      {/* ================================================= */}
-      {/* ERROR */}
-      {/* ================================================= */}
-
       {!loading && errorMessage && (
         <div className="flex min-h-screen items-center justify-center bg-[var(--background)] text-[var(--foreground)]">
           <p className="text-red-500">{errorMessage}</p>
         </div>
       )}
 
-      {/* ================================================= */}
-      {/* DETAIL PAGE */}
-      {/* ================================================= */}
-
       {!loading && !errorMessage && movie && (
         <div className="relative flex min-h-screen flex-col items-center bg-[var(--background)] text-[var(--foreground)]">
           <Header />
 
-          {/* ================= MOVIE HEADER ================= */}
-
           <div className="mt-12 mb-8 w-full max-w-6xl px-4">
             <div className="mb-6 flex items-start justify-between">
-              {/* TITLE */}
-
               <div className="flex flex-col">
                 <h1 className="text-4xl font-semibold leading-10 tracking-tight text-[var(--foreground)]">
                   {movie.title}
