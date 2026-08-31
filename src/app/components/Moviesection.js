@@ -3,7 +3,7 @@
 import { MovieCard } from "./Moviecard";
 import { useRouter } from "next/navigation";
 import { MoveLeft, MoveRight } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
   const router = useRouter();
@@ -22,9 +22,8 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
 
   const [watchlist, setWatchlist] = useState([]);
 
-  useCallback(() => {
+  useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("watchlist") || "[]");
-
     setWatchlist(saved);
   }, []);
 
@@ -46,11 +45,11 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
 
   return (
     <section className="mb-16">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-semibold">{title}</h2>
+      <div className="mb-5 flex items-center justify-between sm:mb-8">
+        <h2 className="text-xl font-semibold sm:text-2xl">{title}</h2>
 
         <button
-          className="flex items-center gap-2 text-sm font-semibold cursor-pointer"
+          className="flex cursor-pointer items-center gap-2 text-sm font-semibold"
           onClick={handleButtonClick}
         >
           {isDetailPage ? (
@@ -67,7 +66,7 @@ export const MovieSection = ({ title, movies, path, isDetailPage = false }) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-6 md:grid-cols-4 lg:grid-cols-5">
         {movies.map((movie) => (
           <div
             key={movie.id || movie.title}

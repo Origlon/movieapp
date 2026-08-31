@@ -618,7 +618,7 @@ export const Header = () => {
               `}
               title="Watchlist"
             >
-              <Heart size={17} strokeWidth={2} />
+              <Heart size={14} strokeWidth={2} />
 
               <span className="hidden text-sm font-medium md:inline">
                 Watchlist

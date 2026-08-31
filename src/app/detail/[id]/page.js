@@ -988,7 +988,7 @@ export default function Detail() {
                 {/* ================================================= */}
                 {/* INSTRUCTION */}
                 {/* ================================================= */}
-                ```jsx
+
                 {subtitleUrl && (
                   <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
                     {/* TITLE */}
@@ -1047,7 +1047,7 @@ export default function Detail() {
                           <p className="mt-0.5 text-xs text-gray-400">
                             Киноны player дээр{" "}
                             <span className="font-medium text-gray-300">
-                              Тоглуулах товч дээр 
+                              Тоглуулах товч дээр
                             </span>{" "}
                             дарна уу.
                           </p>
@@ -1078,12 +1078,12 @@ export default function Detail() {
                             </span>{" "}
                             рүү орж татсан{" "}
                             <span className="font-medium text-gray-300">
-                              .vtt  файлаа
+                              .vtt файлаа
                             </span>{" "}
-                              <span className="font-medium text-gray-300">
+                            <span className="font-medium text-gray-300">
                               Upload Custom Subtitle хэсэг
-                            </span>
-                           {" "} дээр дарж байрлуулна уу.
+                            </span>{" "}
+                            дээр дарж байрлуулна уу.
                           </p>
                         </div>
                       </div>
