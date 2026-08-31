@@ -9,6 +9,7 @@ import {
   Search,
   Heart,
   X,
+  Clock,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { HeaderLogo } from "../icon/Headerlogo";
@@ -36,20 +37,101 @@ const genres = [
 
 export const Header = () => {
   const [isGenreOpen, setIsGenreOpen] = useState(false);
+
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [searches, setSearches] = useState([]);
+
   const [isSearching, setIsSearching] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
   const [isDark, setIsDark] = useState(false);
   const [watchlistCount, setWatchlistCount] = useState(0);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const searchRef = useRef(null);
   const genreRef = useRef(null);
+  const inputRef = useRef(null);
 
   const router = useRouter();
 
   const api_token =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyYTE3NjU2YzRhMTNjNGZkMTA4YTNkYWMxNTIzOWU1NSIsIm5iZiI6MTc4NjU4ODI2OS43MjIsInN1YiI6IjZhN2QyYzZkOTU1MmVlMmNjZTQ0MzI1OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rkN9z-Gh6MuWPxngDLGJrOmaXCRatzzTuaHU0eopQl0";
+
+  // =========================
+  // LOAD SEARCH HISTORY
+  // =========================
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("moviez:searches");
+
+      if (!saved) {
+        setSearches([]);
+        return;
+      }
+
+      const parsed = JSON.parse(saved);
+
+      if (Array.isArray(parsed)) {
+        setSearches(parsed.slice(0, 8));
+      } else {
+        setSearches([]);
+      }
+    } catch {
+      setSearches([]);
+    }
+  }, []);
+
+  // =========================
+  // SAVE SEARCH HISTORY
+  // =========================
+
+  const saveSearch = (query) => {
+    const trimmed = query.trim();
+
+    if (!trimmed) return;
+
+    const filtered = searches.filter(
+      (item) => item.toLowerCase() !== trimmed.toLowerCase(),
+    );
+
+    const updated = [trimmed, ...filtered].slice(0, 8);
+
+    setSearches(updated);
+
+    localStorage.setItem("moviez:searches", JSON.stringify(updated));
+  };
+
+  // =========================
+  // REMOVE ONE SEARCH
+  // =========================
+
+  const removeSearch = (query) => {
+    const updated = searches.filter((item) => item !== query);
+
+    setSearches(updated);
+
+    if (updated.length === 0) {
+      localStorage.removeItem("moviez:searches");
+    } else {
+      localStorage.setItem("moviez:searches", JSON.stringify(updated));
+    }
+
+    setHighlightedIndex(-1);
+  };
+
+  // =========================
+  // CLEAR ALL SEARCHES
+  // =========================
+
+  const clearSearches = () => {
+    localStorage.removeItem("moviez:searches");
+    setSearches([]);
+    setHighlightedIndex(-1);
+  };
 
   // =========================
   // SEARCH MOVIES
@@ -58,6 +140,7 @@ export const Header = () => {
   const searchMovies = async () => {
     if (!search.trim()) {
       setSuggestions([]);
+      setIsSearching(false);
       return;
     }
 
@@ -103,7 +186,7 @@ export const Header = () => {
   // =========================
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleMouseDown = (event) => {
       const clickedSearch =
         searchRef.current && searchRef.current.contains(event.target);
 
@@ -111,15 +194,16 @@ export const Header = () => {
         genreRef.current && genreRef.current.contains(event.target);
 
       if (!clickedSearch && !clickedGenre) {
-        setSuggestions([]);
+        setIsSearchFocused(false);
         setIsGenreOpen(false);
+        setHighlightedIndex(-1);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleMouseDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleMouseDown);
     };
   }, []);
 
@@ -197,6 +281,11 @@ export const Header = () => {
   const handleOpenMobileSearch = () => {
     setIsMobileSearchOpen(true);
     setIsGenreOpen(false);
+    setIsSearchFocused(true);
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   // =========================
@@ -207,7 +296,26 @@ export const Header = () => {
     setSearch("");
     setSuggestions([]);
     setIsGenreOpen(false);
+    setIsSearchFocused(false);
+    setHighlightedIndex(-1);
     setIsMobileSearchOpen(false);
+  };
+
+  // =========================
+  // RUN HISTORY SEARCH
+  // =========================
+
+  const handleHistoryClick = (query) => {
+    saveSearch(query);
+
+    setSearch("");
+    setSuggestions([]);
+    setIsSearchFocused(false);
+    setHighlightedIndex(-1);
+    setIsMobileSearchOpen(false);
+    setIsGenreOpen(false);
+
+    router.push(`/search/${encodeURIComponent(query)}`);
   };
 
   // =========================
@@ -215,8 +323,13 @@ export const Header = () => {
   // =========================
 
   const handleMovieClick = (movie) => {
+    // Search result click = committed search
+    saveSearch(search);
+
     setSearch("");
     setSuggestions([]);
+    setIsSearchFocused(false);
+    setHighlightedIndex(-1);
     setIsMobileSearchOpen(false);
     setIsGenreOpen(false);
 
@@ -228,15 +341,101 @@ export const Header = () => {
   // =========================
 
   const handleSearchSubmit = (e) => {
-    if (e.key === "Enter" && search.trim()) {
+    if (e.key === "Escape") {
+      setIsSearchFocused(false);
+      setHighlightedIndex(-1);
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+
+      if (search.trim()) {
+        if (suggestions.length === 0) return;
+
+        setHighlightedIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0,
+        );
+      } else {
+        if (searches.length === 0) return;
+
+        setHighlightedIndex((prev) =>
+          prev < searches.length - 1 ? prev + 1 : 0,
+        );
+      }
+
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+
+      if (search.trim()) {
+        if (suggestions.length === 0) return;
+
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1,
+        );
+      } else {
+        if (searches.length === 0) return;
+
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : searches.length - 1,
+        );
+      }
+
+      return;
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      // Empty input = history
+      if (!search.trim()) {
+        if (highlightedIndex >= 0 && highlightedIndex < searches.length) {
+          handleHistoryClick(searches[highlightedIndex]);
+        }
+
+        return;
+      }
+
+      // Text input = live results
+      if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+        handleMovieClick(suggestions[highlightedIndex]);
+
+        return;
+      }
+
+      // No highlighted result = normal search
+      saveSearch(search);
+
       router.push(`/search/${encodeURIComponent(search.trim())}`);
 
       setSearch("");
       setSuggestions([]);
+      setIsSearchFocused(false);
+      setHighlightedIndex(-1);
       setIsMobileSearchOpen(false);
       setIsGenreOpen(false);
     }
   };
+
+  // =========================
+  // RESET HIGHLIGHT WHEN SEARCH CHANGES
+  // =========================
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [search]);
+
+  // =========================
+  // DROPDOWN MODES
+  // =========================
+
+  const showRecentSearches =
+    isSearchFocused && search.trim() === "" && searches.length > 0;
+
+  const showSearchResults = isSearchFocused && search.trim() !== "";
 
   return (
     <header className="relative z-50 w-full bg-[var(--background)]">
@@ -356,9 +555,7 @@ export const Header = () => {
                 <span className="hidden md:inline">Genre</span>
               </button>
 
-              {/* ========================= */}
               {/* GENRE DROPDOWN */}
-              {/* ========================= */}
 
               {isGenreOpen && (
                 <div
@@ -440,13 +637,7 @@ export const Header = () => {
                 md:w-94.75
               `}
             >
-              <div
-                className="
-                  relative
-                  flex
-                  w-full
-                "
-              >
+              <div className="relative flex w-full">
                 <Search
                   size={16}
                   strokeWidth={2}
@@ -460,18 +651,19 @@ export const Header = () => {
                 />
 
                 <input
+                  ref={inputRef}
                   autoFocus={isMobileSearchOpen}
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
                   onKeyDown={handleSearchSubmit}
                   placeholder="Search..."
-                  className="
+                  className={`
                     h-9
                     w-full
                     rounded-lg
                     border
-                    border-[#E4E4E7]
                     bg-[var(--background)]
                     pl-10
                     pr-9
@@ -479,7 +671,13 @@ export const Header = () => {
                     text-[var(--foreground)]
                     outline-none
                     placeholder:text-gray-500
-                  "
+
+                    ${
+                      isSearchFocused
+                        ? "border-[#6C5CE7] ring-1 ring-[#6C5CE7]"
+                        : "border-[#E4E4E7]"
+                    }
+                  `}
                 />
 
                 {/* ========================= */}
@@ -506,11 +704,121 @@ export const Header = () => {
                   </button>
                 )}
 
-                {/* ========================= */}
-                {/* SEARCH SUGGESTIONS */}
-                {/* ========================= */}
+                {/* ================================================= */}
+                {/* RECENT SEARCHES */}
+                {/* ================================================= */}
 
-                {search.trim() && (
+                {showRecentSearches && (
+                  <div
+                    className="
+                      absolute
+                      left-0
+                      top-11
+                      z-[10000]
+                      w-full
+                      overflow-hidden
+                      rounded-lg
+                      border
+                      border-[#E4E4E7]
+                      bg-[var(--background)]
+                      text-[var(--foreground)]
+                      shadow-lg
+                    "
+                  >
+                    {/* HEADER */}
+
+                    <div className="flex items-center justify-between px-[14px] py-3">
+                      <span className="text-sm font-semibold">
+                        Recent searches
+                      </span>
+
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={clearSearches}
+                        className="
+                          text-xs
+                          font-medium
+                          text-[#9A9AA6]
+                          transition
+                          hover:text-[#6C5CE7]
+                        "
+                      >
+                        Clear all
+                      </button>
+                    </div>
+
+                    {/* ROWS */}
+
+                    {searches.map((item, index) => (
+                      <div
+                        key={`${item}-${index}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => handleHistoryClick(item)}
+                        className={`
+                          flex
+                          h-9
+                          cursor-pointer
+                          items-center
+                          justify-between
+                          px-[14px]
+                          transition-colors
+
+                          ${
+                            highlightedIndex === index
+                              ? "bg-gray-100 dark:bg-white/10"
+                              : "hover:bg-gray-100 dark:hover:bg-white/10"
+                          }
+                        `}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <Clock
+                            size={16}
+                            strokeWidth={2}
+                            className="shrink-0 text-[#9A9AA6]"
+                          />
+
+                          <span className="truncate text-sm">{item}</span>
+                        </div>
+
+                        {/* REMOVE */}
+
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSearch(item);
+                          }}
+                          className="
+                            ml-3
+                            flex
+                            h-6
+                            w-6
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded
+                            text-[#9A9AA6]
+                            transition
+                            hover:bg-gray-200
+                            hover:text-[#EF4444]
+                            dark:hover:bg-white/10
+                          "
+                          aria-label={`Remove ${item}`}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ================================================= */}
+                {/* LIVE SEARCH RESULTS */}
+                {/* ================================================= */}
+
+                {showSearchResults && (
                   <div
                     className="
                       absolute
@@ -532,12 +840,12 @@ export const Header = () => {
                         Searching...
                       </div>
                     ) : suggestions.length > 0 ? (
-                      suggestions.map((movie) => (
+                      suggestions.map((movie, index) => (
                         <button
                           type="button"
                           key={movie.id}
                           onClick={() => handleMovieClick(movie)}
-                          className="
+                          className={`
                             flex
                             w-full
                             items-center
@@ -545,9 +853,13 @@ export const Header = () => {
                             p-2
                             text-left
                             transition
-                            hover:bg-gray-100
-                            dark:hover:bg-white/10
-                          "
+
+                            ${
+                              highlightedIndex === index
+                                ? "bg-gray-100 dark:bg-white/10"
+                                : "hover:bg-gray-100 dark:hover:bg-white/10"
+                            }
+                          `}
                         >
                           <img
                             src={
@@ -570,11 +882,20 @@ export const Header = () => {
                               {movie.title}
                             </p>
 
-                            <p className="text-xs text-gray-500">
-                              {movie.release_date
-                                ? movie.release_date.slice(0, 4)
-                                : "Unknown"}
-                            </p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>
+                                ★{" "}
+                                {movie.vote_average
+                                  ? movie.vote_average.toFixed(1)
+                                  : "N/A"}
+                              </span>
+
+                              <span>
+                                {movie.release_date
+                                  ? movie.release_date.slice(0, 4)
+                                  : "Unknown"}
+                              </span>
+                            </div>
                           </div>
                         </button>
                       ))
